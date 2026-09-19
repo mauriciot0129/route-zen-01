@@ -18,12 +18,12 @@ export const Route = createFileRoute("/entregas")({
       { title: "Entregas del día | Reparto Coordinadora" },
       {
         name: "description",
-        content: "Marca entregado o devuelto y completa direcciones; todo se guarda en tu planilla.",
+        content: "Marca entregado o fallida y completa direcciones; todo se guarda en tu planilla.",
       },
       { property: "og:title", content: "Entregas del día | Reparto Coordinadora" },
       {
         property: "og:description",
-        content: "Marca entregado o devuelto y completa direcciones; todo se guarda en tu planilla.",
+        content: "Marca entregado o fallida y completa direcciones; todo se guarda en tu planilla.",
       },
     ],
   }),
