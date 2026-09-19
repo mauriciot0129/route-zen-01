@@ -136,11 +136,11 @@ function RutaPage() {
               </div>
             </Card>
           ))}
-          {resultado.sinUbicar.length > 0 && (
+          {(resultado.sinUbicar?.length ?? 0) > 0 && (
             <Card className="p-4">
               <p className="text-sm font-semibold">No pudimos ubicar en el mapa</p>
               <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                {resultado.sinUbicar.map((p) => (
+                {(resultado.sinUbicar ?? []).map((p) => (
                   <li key={p.guia}>
                     {p.guia} — {p.direccion}
                   </li>
