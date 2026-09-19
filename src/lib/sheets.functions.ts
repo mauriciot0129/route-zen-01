@@ -141,8 +141,8 @@ export const actualizarPaquete = createServerFn({ method: "POST" })
     z
       .object({
         row: z.number().int().min(2),
-        estado: z.enum(["ENTREGADO", "DEVUELTO", "PENDIENTE"]),
-        valorPagar: z.number().nonnegative().default(1500),
+        estado: z.enum(["ENTREGADO", "FALLIDA", "PENDIENTE"]),
+        valorPagar: z.number().nonnegative().optional(),
         observaciones: z.string().optional(),
         direccion: z.string().optional(),
       })
@@ -151,16 +151,17 @@ export const actualizarPaquete = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const fecha = hoyBogota();
     const entregado = data.estado === "ENTREGADO";
-    const devuelto = data.estado === "DEVUELTO";
+    const fallida = data.estado === "FALLIDA";
     const pendiente = data.estado === "PENDIENTE";
+    const valorPagar = entregado ? (data.valorPagar ?? 1500) : 0;
 
     const fila = [
       pendiente ? "" : entregado ? fecha : "", // D fecha de entrega
       null, // E cobro (no se toca)
       null, // F valor (no se toca)
       pendiente ? "" : entregado ? "SI" : "NO", // G entrega efectiva
-      devuelto ? fecha : "", // H fecha devolución
-      pendiente ? "" : data.valorPagar, // I valor a pagar
+      fallida ? fecha : "", // H fecha devolución
+      pendiente ? "" : valorPagar, // I valor a pagar
     ];
 
     const dataRanges: { range: string; values: (string | number)[][] }[] = [

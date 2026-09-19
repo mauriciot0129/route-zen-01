@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Undo2, Search } from "lucide-react";
+import { Check, X, Search } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
