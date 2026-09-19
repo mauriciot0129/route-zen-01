@@ -140,7 +140,7 @@ function Registro() {
   }
 
   return (
-    <Pantalla titulo="Registrar guías" descripción="" descripcion={`Hoy ${hoy} · ${deHoy.length} paquetes registrados`}>
+    <Pantalla titulo="Registrar guías" descripcion={`Hoy ${hoy} · ${deHoy.length} paquetes registrados`}>
       <Tabs defaultValue="escanear">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="escanear">
