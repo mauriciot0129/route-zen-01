@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Undo2, Search } from "lucide-react";
+import { Check, X, Search } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,12 @@ export const Route = createFileRoute("/entregas")({
       { title: "Entregas del día | Reparto Coordinadora" },
       {
         name: "description",
-        content: "Marca entregado o devuelto y completa direcciones; todo se guarda en tu planilla.",
+        content: "Marca entregado o fallida y completa direcciones; todo se guarda en tu planilla.",
       },
       { property: "og:title", content: "Entregas del día | Reparto Coordinadora" },
       {
         property: "og:description",
-        content: "Marca entregado o devuelto y completa direcciones; todo se guarda en tu planilla.",
+        content: "Marca entregado o fallida y completa direcciones; todo se guarda en tu planilla.",
       },
     ],
   }),
@@ -41,8 +41,8 @@ function Entregas() {
   const { data, isLoading } = useQuery({ queryKey: ["paquetes"], queryFn: () => listarPaquetes() });
 
   const mutacion = useMutation({
-    mutationFn: (vars: { row: number; estado: "ENTREGADO" | "DEVUELTO" | "PENDIENTE"; direccion?: string }) =>
-      actualizar({ data: { ...vars, valorPagar: TARIFA } }),
+    mutationFn: (vars: { row: number; estado: "ENTREGADO" | "FALLIDA" | "PENDIENTE"; direccion?: string }) =>
+      actualizar({ data: { ...vars, valorPagar: vars.estado === "ENTREGADO" ? TARIFA : 0 } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["paquetes"] });
       toast.success("Planilla actualizada");
@@ -91,7 +91,7 @@ function Entregas() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 {p.entregaEfectiva === "SI" && <Badge className="bg-success text-success-foreground">Entregado</Badge>}
-                {p.fechaDevolucion !== "" && <Badge variant="destructive">Devuelto</Badge>}
+                {p.fechaDevolucion !== "" && <Badge variant="destructive">Fallida</Badge>}
                 {p.cobro === "SI" && <Badge variant="secondary">Recaudo {p.valor}</Badge>}
               </div>
             </div>
@@ -117,9 +117,9 @@ function Entregas() {
                 variant="secondary"
                 className="flex-1"
                 disabled={mutacion.isPending}
-                onClick={() => mutacion.mutate({ row: p.row, estado: "DEVUELTO" })}
+                onClick={() => mutacion.mutate({ row: p.row, estado: "FALLIDA" })}
               >
-                <Undo2 className="mr-2 h-4 w-4" /> Devuelto
+                <X className="mr-2 h-4 w-4" /> Fallida
               </Button>
             </div>
           </Card>
