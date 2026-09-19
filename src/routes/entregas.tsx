@@ -41,8 +41,8 @@ function Entregas() {
   const { data, isLoading } = useQuery({ queryKey: ["paquetes"], queryFn: () => listarPaquetes() });
 
   const mutacion = useMutation({
-    mutationFn: (vars: { row: number; estado: "ENTREGADO" | "DEVUELTO" | "PENDIENTE"; direccion?: string }) =>
-      actualizar({ data: { ...vars, valorPagar: TARIFA } }),
+    mutationFn: (vars: { row: number; estado: "ENTREGADO" | "FALLIDA" | "PENDIENTE"; direccion?: string }) =>
+      actualizar({ data: { ...vars, valorPagar: vars.estado === "ENTREGADO" ? TARIFA : 0 } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["paquetes"] });
       toast.success("Planilla actualizada");
@@ -91,7 +91,7 @@ function Entregas() {
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 {p.entregaEfectiva === "SI" && <Badge className="bg-success text-success-foreground">Entregado</Badge>}
-                {p.fechaDevolucion !== "" && <Badge variant="destructive">Devuelto</Badge>}
+                {p.fechaDevolucion !== "" && <Badge variant="destructive">Fallida</Badge>}
                 {p.cobro === "SI" && <Badge variant="secondary">Recaudo {p.valor}</Badge>}
               </div>
             </div>
@@ -117,9 +117,9 @@ function Entregas() {
                 variant="secondary"
                 className="flex-1"
                 disabled={mutacion.isPending}
-                onClick={() => mutacion.mutate({ row: p.row, estado: "DEVUELTO" })}
+                onClick={() => mutacion.mutate({ row: p.row, estado: "FALLIDA" })}
               >
-                <Undo2 className="mr-2 h-4 w-4" /> Devuelto
+                <X className="mr-2 h-4 w-4" /> Fallida
               </Button>
             </div>
           </Card>
