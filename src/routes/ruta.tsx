@@ -32,15 +32,16 @@ export const Route = createFileRoute("/ruta")({
   component: RutaPage,
 });
 
+const INICIO_FIJO = "CL 53A # 47A - 38 Los Naranjos Itagüí";
+
 function RutaPage() {
   const [ciudad, setCiudad] = useState("");
-  const [inicio, setInicio] = useState("");
+  const [inicio] = useState(INICIO_FIJO);
   const [seleccion, setSeleccion] = useState<Record<string, boolean>>({});
   const optimizar = useServerFn(optimizarRuta);
 
   useEffect(() => {
-    setCiudad(localStorage.getItem("ciudad") ?? "Pereira");
-    setInicio(localStorage.getItem("inicio") ?? "");
+    setCiudad(localStorage.getItem("ciudad") ?? "Itagüí");
   }, []);
 
   const { data } = useQuery({ queryKey: ["paquetes"], queryFn: () => listarPaquetes() });
@@ -56,7 +57,6 @@ function RutaPage() {
   const mutacion = useMutation({
     mutationFn: () => {
       localStorage.setItem("ciudad", ciudad);
-      localStorage.setItem("inicio", inicio);
       return optimizar({
         data: {
           ciudad,
@@ -79,12 +79,7 @@ function RutaPage() {
         </div>
         <div>
           <Label htmlFor="inicio">Punto de partida</Label>
-          <Input
-            id="inicio"
-            value={inicio}
-            onChange={(e) => setInicio(e.target.value)}
-            placeholder="Ej: Calle 14 #23-45"
-          />
+          <Input id="inicio" value={inicio} readOnly className="bg-muted" />
         </div>
         <Button
           className="w-full"
