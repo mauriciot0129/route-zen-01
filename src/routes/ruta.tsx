@@ -115,6 +115,23 @@ function RutaPage() {
               </a>
             </Button>
           </div>
+
+          <Button variant="secondary" size="sm" onClick={() => setMostrarMapa((v) => !v)}>
+            <MapIcon className="mr-2 h-4 w-4" />
+            {mostrarMapa ? "Ocultar mapa" : "Mostrar mapa con la ruta numerada"}
+          </Button>
+          {mostrarMapa && (
+            <ClientOnly
+              fallback={
+                <div className="h-80 animate-pulse rounded-xl bg-secondary" />
+              }
+            >
+              <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-secondary" />}>
+                <MapaRuta origen={resultado.origen} paradas={resultado.orden} />
+              </Suspense>
+            </ClientOnly>
+          )}
+
           {resultado.orden.map((p) => (
             <Card key={p.guia} className="flex items-start gap-3 p-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
