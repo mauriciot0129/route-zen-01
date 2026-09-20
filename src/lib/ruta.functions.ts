@@ -130,7 +130,15 @@ export const optimizarRuta = createServerFn({ method: "POST" })
     }`;
 
     return {
-      orden: orden.map((p, i) => ({ posicion: i + 1, guia: p.guia, nombre: p.nombre, direccion: p.direccion })),
+      origen: { lat: origen.lat, lon: origen.lon, direccion: data.inicio },
+      orden: orden.map((p, i) => ({
+        posicion: i + 1,
+        guia: p.guia,
+        nombre: p.nombre,
+        direccion: p.direccion,
+        lat: p.lat,
+        lon: p.lon,
+      })),
       sinUbicar: sinUbicar.map((p) => ({ guia: p.guia, nombre: p.nombre, direccion: p.direccion })),
       distanciaKm: Math.round(distanciaKm * 10) / 10,
       mapsUrl,
