@@ -150,7 +150,8 @@ function Entregas() {
                     toast.warning("Elige si el recaudo fue en efectivo o por transferencia");
                     return;
                   }
-                  mutacion.mutate({ row: p.row, estado: "ENTREGADO", pago: pagos[p.row] });
+                  const pago = pagos[p.row];
+                  mutacion.mutate({ row: p.row, estado: "ENTREGADO", ...(pago ? { pago } : {}) });
                 }}
               >
                 <Check className="mr-2 h-4 w-4" /> Entregado
