@@ -175,6 +175,10 @@ export const actualizarPaquete = createServerFn({ method: "POST" })
     if (data.direccion !== undefined) {
       dataRanges.push({ range: `${TAB}!K${data.row}`, values: [[data.direccion]] });
     }
+    // Pago por transferencia: se borra el cobro y el valor para que no cuente como recaudo en efectivo.
+    if (data.pago === "TRANSFERENCIA") {
+      dataRanges.push({ range: `${TAB}!E${data.row}:F${data.row}`, values: [["", ""]] });
+    }
 
     await sheets(`/spreadsheets/${SHEET_ID}/values:batchUpdate`, {
       method: "POST",
