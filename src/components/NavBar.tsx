@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ScanLine, Map, PackageCheck } from "lucide-react";
+import { ScanLine, Map, PackageCheck, BarChart3 } from "lucide-react";
 
 const items = [
   { to: "/", label: "Registrar", icon: ScanLine },
   { to: "/ruta", label: "Ruta", icon: Map },
   { to: "/entregas", label: "Entregas", icon: PackageCheck },
+  { to: "/resumen", label: "Resumen", icon: BarChart3 },
 ] as const;
 
 export function NavBar() {
