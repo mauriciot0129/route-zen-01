@@ -120,7 +120,7 @@ function RutaPage() {
             <MapIcon className="mr-2 h-4 w-4" />
             {mostrarMapa ? "Ocultar mapa" : "Mostrar mapa con la ruta numerada"}
           </Button>
-          {mostrarMapa && (
+          {mostrarMapa && resultado.origen && (
             <ClientOnly
               fallback={
                 <div className="h-80 animate-pulse rounded-xl bg-secondary" />
