@@ -32,17 +32,24 @@ export const Route = createFileRoute("/entregas")({
 
 const TARIFA = 1500;
 
+type Pago = "EFECTIVO" | "TRANSFERENCIA";
+
 function Entregas() {
   const [busqueda, setBusqueda] = useState("");
   const [direcciones, setDirecciones] = useState<Record<number, string>>({});
+  const [pagos, setPagos] = useState<Record<number, Pago>>({});
   const actualizar = useServerFn(actualizarPaquete);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({ queryKey: ["paquetes"], queryFn: () => listarPaquetes() });
 
   const mutacion = useMutation({
-    mutationFn: (vars: { row: number; estado: "ENTREGADO" | "FALLIDA" | "PENDIENTE"; direccion?: string }) =>
-      actualizar({ data: { ...vars, valorPagar: vars.estado === "ENTREGADO" ? TARIFA : 0 } }),
+    mutationFn: (vars: {
+      row: number;
+      estado: "ENTREGADO" | "FALLIDA" | "PENDIENTE";
+      direccion?: string;
+      pago?: Pago;
+    }) => actualizar({ data: { ...vars, valorPagar: vars.estado === "ENTREGADO" ? TARIFA : 0 } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["paquetes"] });
       toast.success("Planilla actualizada");
