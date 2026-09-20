@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Trash2, Plus, Save, ScanLine, ClipboardPaste } from "lucide-react";
+import { Trash2, Plus, Save, ScanLine, ClipboardPaste, Camera } from "lucide-react";
 
-import { Escaner } from "@/components/Escaner";
+import { Escaner, guiaDe } from "@/components/Escaner";
+import { FotoEtiqueta, type DatosEtiqueta } from "@/components/FotoEtiqueta";
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -70,10 +71,12 @@ function Registro() {
   const hoy = data?.hoy ?? "";
   const deHoy = (data?.paquetes ?? []).filter((p) => p.fecha === hoy);
 
-  function agregar(guia: string) {
-    const limpia = guia.replace(/\D/g, "");
-    if (limpia.length < 8) {
-      toast.error("Código no válido", { description: limpia || "No se leyó ningún número" });
+  function agregar(guia: string, extra?: Partial<Borrador>) {
+    const limpia = guiaDe(guia);
+    if (limpia.length !== 11) {
+      toast.error("La guía debe tener 11 dígitos", {
+        description: guia.replace(/\D/g, "") || "No se leyó ningún número",
+      });
       return;
     }
     setLista((prev) => {
@@ -86,7 +89,17 @@ function Registro() {
         return prev;
       }
       toast.success(`Guía ${limpia} agregada`);
-      return [nuevo(limpia), ...prev];
+      return [{ ...nuevo(limpia), ...extra }, ...prev];
+    });
+  }
+
+  function agregarEtiqueta(d: DatosEtiqueta) {
+    agregar(d.guia, {
+      nombre: d.nombre,
+      direccion: d.direccion,
+      cobro: d.cobro,
+      valor: d.cobro && d.valor ? String(d.valor) : "",
+      observaciones: d.telefono ? `Tel: ${d.telefono}` : "",
     });
   }
 

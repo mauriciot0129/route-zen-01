@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { ClientOnly } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Navigation, MapPin, Route as RouteIcon } from "lucide-react";
+import { Navigation, MapPin, Route as RouteIcon, Map as MapIcon } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
@@ -33,10 +34,12 @@ export const Route = createFileRoute("/ruta")({
 });
 
 const INICIO_FIJO = "CL 53A # 47A - 38 Los Naranjos Itagüí";
+const MapaRuta = lazy(() => import("@/components/MapaRuta"));
 
 function RutaPage() {
   const [ciudad, setCiudad] = useState("");
   const [inicio] = useState(INICIO_FIJO);
+  const [mostrarMapa, setMostrarMapa] = useState(true);
   const [seleccion, setSeleccion] = useState<Record<string, boolean>>({});
   const optimizar = useServerFn(optimizarRuta);
 
@@ -112,6 +115,23 @@ function RutaPage() {
               </a>
             </Button>
           </div>
+
+          <Button variant="secondary" size="sm" onClick={() => setMostrarMapa((v) => !v)}>
+            <MapIcon className="mr-2 h-4 w-4" />
+            {mostrarMapa ? "Ocultar mapa" : "Mostrar mapa con la ruta numerada"}
+          </Button>
+          {mostrarMapa && resultado.origen && (
+            <ClientOnly
+              fallback={
+                <div className="h-80 animate-pulse rounded-xl bg-secondary" />
+              }
+            >
+              <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-secondary" />}>
+                <MapaRuta origen={resultado.origen} paradas={resultado.orden} />
+              </Suspense>
+            </ClientOnly>
+          )}
+
           {resultado.orden.map((p) => (
             <Card key={p.guia} className="flex items-start gap-3 p-3">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">

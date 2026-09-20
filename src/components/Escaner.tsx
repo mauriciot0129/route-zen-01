@@ -6,6 +6,16 @@ interface Props {
   onCodigo: (codigo: string) => void;
 }
 
+/** Saca la guía de 11 dígitos del código leído. */
+export function guiaDe(texto: string): string {
+  const grupo = texto.match(/(?<!\d)(\d{11})(?!\d)/);
+  if (grupo) return grupo[1]!;
+  const digitos = texto.replace(/\D/g, "");
+  if (digitos.length === 11) return digitos;
+  if (digitos.length > 11) return digitos.slice(-11);
+  return "";
+}
+
 /** Lector de códigos de barras con la cámara del teléfono. */
 export function Escaner({ onCodigo }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -36,7 +46,7 @@ export function Escaner({ onCodigo }: Props) {
         videoRef.current!,
         (result) => {
           if (!result) return;
-          const texto = result.getText().replace(/\D/g, "");
+          const texto = guiaDe(result.getText());
           if (!texto) return;
           const ahora = Date.now();
           if (ultimoRef.current.codigo === texto && ahora - ultimoRef.current.t < 2500) return;
