@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, X, Search } from "lucide-react";
+import { Check, X, Search, Banknote, Smartphone } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
@@ -112,11 +112,46 @@ function Entregas() {
 
             {p.observaciones && <p className="text-sm text-muted-foreground">{p.observaciones}</p>}
 
+            {p.cobro === "SI" && (
+              <div className="rounded-lg bg-secondary p-3">
+                <p className="text-xs font-semibold">¿Cómo pagó el recaudo de {p.valor}?</p>
+                <div className="mt-2 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant={pagos[p.row] === "EFECTIVO" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setPagos((s) => ({ ...s, [p.row]: "EFECTIVO" }))}
+                  >
+                    <Banknote className="mr-2 h-4 w-4" /> Efectivo
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={pagos[p.row] === "TRANSFERENCIA" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setPagos((s) => ({ ...s, [p.row]: "TRANSFERENCIA" }))}
+                  >
+                    <Smartphone className="mr-2 h-4 w-4" /> Transferencia
+                  </Button>
+                </div>
+                {pagos[p.row] === "TRANSFERENCIA" && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Al marcar la entrega se borra el cobro y el valor: no cuenta en el efectivo recaudado.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Button
                 className="flex-1"
                 disabled={mutacion.isPending}
-                onClick={() => mutacion.mutate({ row: p.row, estado: "ENTREGADO" })}
+                onClick={() => {
+                  if (p.cobro === "SI" && !pagos[p.row]) {
+                    toast.warning("Elige si el recaudo fue en efectivo o por transferencia");
+                    return;
+                  }
+                  mutacion.mutate({ row: p.row, estado: "ENTREGADO", pago: pagos[p.row] });
+                }}
               >
                 <Check className="mr-2 h-4 w-4" /> Entregado
               </Button>
