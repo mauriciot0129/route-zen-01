@@ -145,6 +145,7 @@ export const actualizarPaquete = createServerFn({ method: "POST" })
         valorPagar: z.number().nonnegative().optional(),
         observaciones: z.string().optional(),
         direccion: z.string().optional(),
+        pago: z.enum(["EFECTIVO", "TRANSFERENCIA"]).optional(),
       })
       .parse(data),
   )
