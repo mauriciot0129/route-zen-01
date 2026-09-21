@@ -93,6 +93,78 @@ function calcular(paquetes: Paquete[], periodo: Periodo, hoy: Date) {
   return { etiqueta, recibidos, entregados, fallidos, pendientes, efectivo, conEfectivo, aPagar };
 }
 
+const MESES = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+/** Resumen de un rango cualquiera de fechas. */
+function calcularRango(paquetes: Paquete[], desde: Date, hasta: Date) {
+  const recibidos = paquetes.filter((p) => dentro(p.fecha, desde, hasta));
+  const entregados = paquetes.filter((p) => p.entregaEfectiva === "SI" && dentro(p.fechaEntrega, desde, hasta));
+  const fallidos = paquetes.filter((p) => p.fechaDevolucion !== "" && dentro(p.fechaDevolucion, desde, hasta));
+  const pendientes = recibidos.filter((p) => p.entregaEfectiva === "" && p.fechaDevolucion === "");
+  const efectivo = entregados.filter((p) => p.cobro === "SI").reduce((s, p) => s + numero(p.valor), 0);
+  const aPagar = entregados.reduce((s, p) => s + numero(p.valorPagar), 0);
+  return {
+    recibidos: recibidos.length,
+    entregados: entregados.length,
+    fallidos: fallidos.length,
+    pendientes: pendientes.length,
+    efectivo,
+    aPagar,
+  };
+}
+
+/** Todos los meses con registros, del más reciente al más antiguo. */
+function historial(paquetes: Paquete[]) {
+  const claves = new Set<string>();
+  for (const p of paquetes) {
+    const f = aFecha(p.fecha);
+    if (f) claves.add(`${f.getFullYear()}-${f.getMonth()}`);
+  }
+  return Array.from(claves)
+    .map((k) => {
+      const [y, m] = k.split("-").map(Number);
+      const anio = y!;
+      const mes = m!;
+      const finMes = new Date(anio, mes + 1, 0).getDate();
+      return {
+        clave: k,
+        titulo: `${MESES[mes]} ${anio}`,
+        mes: calcularRango(paquetes, new Date(anio, mes, 1), new Date(anio, mes, finMes)),
+        q1: calcularRango(paquetes, new Date(anio, mes, 1), new Date(anio, mes, 15)),
+        q2: calcularRango(paquetes, new Date(anio, mes, 16), new Date(anio, mes, finMes)),
+        orden: anio * 12 + mes,
+      };
+    })
+    .sort((a, b) => b.orden - a.orden);
+}
+
+function Fila({ nombre, r }: { nombre: string; r: ReturnType<typeof calcularRango> }) {
+  return (
+    <tr className="border-t border-border">
+      <td className="py-2 pr-2">{nombre}</td>
+      <td className="py-2 text-center">{r.recibidos}</td>
+      <td className="py-2 text-center text-success">{r.entregados}</td>
+      <td className="py-2 text-center text-destructive">{r.fallidos}</td>
+      <td className="py-2 text-center">{r.pendientes}</td>
+      <td className="py-2 text-right">{pesos(r.efectivo)}</td>
+      <td className="py-2 text-right">{pesos(r.aPagar)}</td>
+    </tr>
+  );
+}
+
 function Metrica({
   icono: Icono,
   titulo,
@@ -134,19 +206,57 @@ function Resumen() {
   ];
 
   const pendientesGlobal = paquetes.filter((p) => p.entregaEfectiva === "" && p.fechaDevolucion === "").length;
+  const meses = historial(paquetes);
 
   return (
     <Pantalla titulo="Resumen" descripcion={`${paquetes.length} paquetes en la planilla · ${pendientesGlobal} pendientes en total`}>
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
 
       <Tabs defaultValue="dia">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           {periodos.map((p) => (
             <TabsTrigger key={p.valor} value={p.valor} className="text-xs">
               {p.texto}
             </TabsTrigger>
           ))}
+          <TabsTrigger value="historial" className="text-xs">
+            Meses
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="historial" className="mt-4 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Mes por mes y quincena por quincena, con todo lo registrado desde agosto.
+          </p>
+          {meses.map((m) => (
+            <Card key={m.clave} className="p-4">
+              <p className="font-display text-base font-semibold capitalize">{m.titulo}</p>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <th className="pb-1 text-left font-medium">Periodo</th>
+                      <th className="pb-1 text-center font-medium">Rec.</th>
+                      <th className="pb-1 text-center font-medium">Entr.</th>
+                      <th className="pb-1 text-center font-medium">Fall.</th>
+                      <th className="pb-1 text-center font-medium">Pend.</th>
+                      <th className="pb-1 text-right font-medium">Efectivo</th>
+                      <th className="pb-1 text-right font-medium">Te pagan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <Fila nombre="Del 1 al 15" r={m.q1} />
+                    <Fila nombre="Del 16 en adelante" r={m.q2} />
+                    <Fila nombre="Todo el mes" r={m.mes} />
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ))}
+          {!isLoading && meses.length === 0 && (
+            <p className="text-sm text-muted-foreground">Todavía no hay meses con registros.</p>
+          )}
+        </TabsContent>
 
         {periodos.map((p) => {
           const r = calcular(paquetes, p.valor, hoy);
