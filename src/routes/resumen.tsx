@@ -206,6 +206,7 @@ function Resumen() {
   ];
 
   const pendientesGlobal = paquetes.filter((p) => p.entregaEfectiva === "" && p.fechaDevolucion === "").length;
+  const meses = historial(paquetes);
 
   return (
     <Pantalla titulo="Resumen" descripcion={`${paquetes.length} paquetes en la planilla · ${pendientesGlobal} pendientes en total`}>
