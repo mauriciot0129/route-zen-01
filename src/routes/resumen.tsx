@@ -151,6 +151,83 @@ function historial(paquetes: Paquete[]) {
     .sort((a, b) => b.orden - a.orden);
 }
 
+/* ---------- Cortes de pago ---------- */
+
+function masDias(d: Date, n: number) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+/** El pago del 15 o del 30/31; si cae sábado se adelanta al viernes. */
+function fechaPago(anio: number, mes: number, corte: 1 | 2): Date {
+  const finMes = new Date(anio, mes + 1, 0).getDate();
+  const base = corte === 1 ? new Date(anio, mes, 15) : new Date(anio, mes, finMes === 31 ? 31 : 30);
+  return base.getDay() === 6 ? masDias(base, -1) : base;
+}
+
+/** Corte de pago: desde, hasta y día de pago. El corte termina un día antes del pago. */
+function corteDe(anio: number, mes: number, corte: 1 | 2) {
+  const pago = fechaPago(anio, mes, corte);
+  const hasta = masDias(pago, -1);
+  const anterior =
+    corte === 1
+      ? (() => {
+          const p = new Date(anio, mes - 1, 1);
+          return fechaPago(p.getFullYear(), p.getMonth(), 2);
+        })()
+      : fechaPago(anio, mes, 1);
+  return { desde: anterior, hasta, pago };
+}
+
+function diaMes(d: Date) {
+  return `${d.getDate()} de ${MESES[d.getMonth()]}`;
+}
+
+/** Todos los cortes ya iniciados, del más reciente al más antiguo. */
+function cortesDePago(paquetes: Paquete[], hoy: Date) {
+  let min: Date | null = null;
+  for (const p of paquetes) {
+    const f = aFecha(p.fecha);
+    if (f && (!min || f.getTime() < min.getTime())) min = f;
+  }
+  const inicio = min ?? hoy;
+  const lista: {
+    clave: string;
+    titulo: string;
+    pago: Date;
+    desde: Date;
+    hasta: Date;
+    r: ReturnType<typeof calcularRango>;
+  }[] = [];
+  for (let anio = inicio.getFullYear(); anio <= hoy.getFullYear(); anio++) {
+    for (let mes = 0; mes < 12; mes++) {
+      for (const c of [1, 2] as const) {
+        const { desde, hasta, pago } = corteDe(anio, mes, c);
+        if (desde.getTime() > hoy.getTime()) continue;
+        if (hasta.getTime() < inicio.getTime()) continue;
+        lista.push({
+          clave: `${anio}-${mes}-${c}`,
+          titulo: `${diaMes(desde)} al ${diaMes(hasta)}`,
+          pago,
+          desde,
+          hasta,
+          r: calcularRango(paquetes, desde, hasta),
+        });
+      }
+    }
+  }
+  return lista.sort((a, b) => b.pago.getTime() - a.pago.getTime());
+}
+
+function aISO(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function deISO(txt: string): Date | null {
+  const m = txt.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
 function Fila({ nombre, r }: { nombre: string; r: ReturnType<typeof calcularRango> }) {
   return (
     <tr className="border-t border-border">
