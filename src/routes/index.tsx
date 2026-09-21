@@ -106,10 +106,10 @@ function Registro() {
   function agregarPegadas() {
     const guias = pegado
       .split(/[\s,;]+/)
-      .map((g) => g.replace(/\D/g, ""))
-      .filter((g) => g.length >= 8);
+      .map((g) => guiaDe(g))
+      .filter((g) => g.length === 11);
     if (!guias.length) {
-      toast.error("No encontramos guías en el texto");
+      toast.error("No encontramos guías de 11 dígitos en el texto");
       return;
     }
     const existentes = new Set([
@@ -154,17 +154,23 @@ function Registro() {
 
   return (
     <Pantalla titulo="Registrar guías" descripcion={`Hoy ${hoy} · ${deHoy.length} paquetes registrados`}>
-      <Tabs defaultValue="escanear">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="escanear">
-            <ScanLine className="mr-2 h-4 w-4" /> Escanear
+      <Tabs defaultValue="foto">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="foto" className="text-xs">
+            <Camera className="mr-1 h-4 w-4" /> Foto
           </TabsTrigger>
-          <TabsTrigger value="pegar">
-            <ClipboardPaste className="mr-2 h-4 w-4" /> Pegar lista
+          <TabsTrigger value="escanear" className="text-xs">
+            <ScanLine className="mr-1 h-4 w-4" /> Escanear
+          </TabsTrigger>
+          <TabsTrigger value="pegar" className="text-xs">
+            <ClipboardPaste className="mr-1 h-4 w-4" /> Pegar
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="foto" className="mt-4">
+          <FotoEtiqueta onDatos={agregarEtiqueta} />
+        </TabsContent>
         <TabsContent value="escanear" className="mt-4">
-          <Escaner onCodigo={agregar} />
+          <Escaner onCodigo={(g) => agregar(g)} />
         </TabsContent>
         <TabsContent value="pegar" className="mt-4 space-y-3">
           <Textarea
