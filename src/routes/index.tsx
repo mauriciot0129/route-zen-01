@@ -106,10 +106,10 @@ function Registro() {
   function agregarPegadas() {
     const guias = pegado
       .split(/[\s,;]+/)
-      .map((g) => g.replace(/\D/g, ""))
-      .filter((g) => g.length >= 8);
+      .map((g) => guiaDe(g))
+      .filter((g) => g.length === 11);
     if (!guias.length) {
-      toast.error("No encontramos guías en el texto");
+      toast.error("No encontramos guías de 11 dígitos en el texto");
       return;
     }
     const existentes = new Set([
