@@ -212,13 +212,50 @@ function Resumen() {
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
 
       <Tabs defaultValue="dia">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           {periodos.map((p) => (
             <TabsTrigger key={p.valor} value={p.valor} className="text-xs">
               {p.texto}
             </TabsTrigger>
           ))}
+          <TabsTrigger value="historial" className="text-xs">
+            Meses
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="historial" className="mt-4 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Mes por mes y quincena por quincena, con todo lo registrado desde agosto.
+          </p>
+          {meses.map((m) => (
+            <Card key={m.clave} className="p-4">
+              <p className="font-display text-base font-semibold capitalize">{m.titulo}</p>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <th className="pb-1 text-left font-medium">Periodo</th>
+                      <th className="pb-1 text-center font-medium">Rec.</th>
+                      <th className="pb-1 text-center font-medium">Entr.</th>
+                      <th className="pb-1 text-center font-medium">Fall.</th>
+                      <th className="pb-1 text-center font-medium">Pend.</th>
+                      <th className="pb-1 text-right font-medium">Efectivo</th>
+                      <th className="pb-1 text-right font-medium">Te pagan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <Fila nombre="Del 1 al 15" r={m.q1} />
+                    <Fila nombre="Del 16 en adelante" r={m.q2} />
+                    <Fila nombre="Todo el mes" r={m.mes} />
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          ))}
+          {!isLoading && meses.length === 0 && (
+            <p className="text-sm text-muted-foreground">Todavía no hay meses con registros.</p>
+          )}
+        </TabsContent>
 
         {periodos.map((p) => {
           const r = calcular(paquetes, p.valor, hoy);
