@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -18,18 +18,48 @@ export interface DatosEtiqueta {
 
 /** Reduce la foto para que viaje rápido y la IA la lea bien. */
 async function comprimir(file: File): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const max = 1600;
-  const escala = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+  const max = 1280;
+  const original = await createImageBitmap(file);
+  const escala = Math.min(1, max / Math.max(original.width, original.height));
+  const ancho = Math.max(1, Math.round(original.width * escala));
+  const alto = Math.max(1, Math.round(original.height * escala));
+  original.close();
+
+  const bitmap = await createImageBitmap(file, {
+    resizeWidth: ancho,
+    resizeHeight: alto,
+    resizeQuality: "high",
+  });
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * escala);
-  canvas.height = Math.round(bitmap.height * escala);
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.8);
+  canvas.width = ancho;
+  canvas.height = alto;
+  const contexto = canvas.getContext("2d", { alpha: false });
+  if (!contexto) {
+    bitmap.close();
+    throw new Error("El teléfono no pudo preparar la foto.");
+  }
+  contexto.drawImage(bitmap, 0, 0, ancho, alto);
+  bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (resultado) => (resultado ? resolve(resultado) : reject(new Error("No se pudo reducir la foto."))),
+      "image/jpeg",
+      0.72,
+    );
+  });
+  canvas.width = 1;
+  canvas.height = 1;
+
+  return new Promise<string>((resolve, reject) => {
+    const lector = new FileReader();
+    lector.onload = () => resolve(String(lector.result));
+    lector.onerror = () => reject(new Error("No se pudo leer la foto."));
+    lector.readAsDataURL(blob);
+  });
 }
 
 export function FotoEtiqueta({ onDatos }: { onDatos: (d: DatosEtiqueta) => void }) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [vista, setVista] = useState<string | null>(null);
   const leer = useServerFn(leerEtiqueta);
 
@@ -69,21 +99,24 @@ export function FotoEtiqueta({ onDatos }: { onDatos: (d: DatosEtiqueta) => void 
           </div>
         )}
       </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (file) mutacion.mutate(file);
-        }}
-      />
-      <Button className="w-full" disabled={mutacion.isPending} onClick={() => inputRef.current?.click()}>
-        <Camera className="mr-2 h-4 w-4" /> Tomar foto de la etiqueta
-      </Button>
+      <div className="relative">
+        <Button className="pointer-events-none w-full" disabled={mutacion.isPending} tabIndex={-1}>
+          <Camera className="mr-2 h-4 w-4" /> Tomar foto de la etiqueta
+        </Button>
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          aria-label="Tomar foto de la etiqueta"
+          disabled={mutacion.isPending}
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) mutacion.mutate(file);
+          }}
+        />
+      </div>
     </div>
   );
 }
