@@ -56,9 +56,12 @@ function rango(periodo: Periodo, hoy: Date): { desde: Date; hasta: Date; etiquet
     return { desde, hasta, etiqueta: "Esta semana (desde el lunes)" };
   }
   if (periodo === "quincena") {
-    const primera = hoy.getDate() <= 15;
-    const desde = new Date(hoy.getFullYear(), hoy.getMonth(), primera ? 1 : 16);
-    return { desde, hasta, etiqueta: primera ? "Quincena del 1 al 15" : "Quincena del 16 en adelante" };
+    const c = corteActual(hoy);
+    return {
+      desde: c.desde,
+      hasta,
+      etiqueta: `Corte del ${diaMes(c.desde)} al ${diaMes(c.hasta)} · te pagan el ${diaMes(c.pago)}`,
+    };
   }
   if (periodo === "mes") {
     const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
