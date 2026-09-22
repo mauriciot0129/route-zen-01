@@ -185,6 +185,21 @@ function diaMes(d: Date) {
   return `${d.getDate()} de ${MESES[d.getMonth()]}`;
 }
 
+/** El corte de pago que contiene la fecha dada. */
+function corteActual(hoy: Date) {
+  const candidatos = [
+    (() => {
+      const p = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+      return corteDe(p.getFullYear(), p.getMonth(), 2);
+    })(),
+    corteDe(hoy.getFullYear(), hoy.getMonth(), 1),
+    corteDe(hoy.getFullYear(), hoy.getMonth(), 2),
+  ];
+  return (
+    candidatos.find((c) => hoy.getTime() >= c.desde.getTime() && hoy.getTime() <= c.hasta.getTime()) ?? candidatos[1]!
+  );
+}
+
 /** Todos los cortes ya iniciados, del más reciente al más antiguo. */
 function cortesDePago(paquetes: Paquete[], hoy: Date) {
   let min: Date | null = null;
