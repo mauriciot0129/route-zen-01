@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listarPaquetes, type Paquete } from "@/lib/sheets.functions";
 
@@ -56,9 +59,12 @@ function rango(periodo: Periodo, hoy: Date): { desde: Date; hasta: Date; etiquet
     return { desde, hasta, etiqueta: "Esta semana (desde el lunes)" };
   }
   if (periodo === "quincena") {
-    const primera = hoy.getDate() <= 15;
-    const desde = new Date(hoy.getFullYear(), hoy.getMonth(), primera ? 1 : 16);
-    return { desde, hasta, etiqueta: primera ? "Quincena del 1 al 15" : "Quincena del 16 en adelante" };
+    const c = corteActual(hoy);
+    return {
+      desde: c.desde,
+      hasta,
+      etiqueta: `Corte del ${diaMes(c.desde)} al ${diaMes(c.hasta)} · te pagan el ${diaMes(c.pago)}`,
+    };
   }
   if (periodo === "mes") {
     const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -182,6 +188,21 @@ function diaMes(d: Date) {
   return `${d.getDate()} de ${MESES[d.getMonth()]}`;
 }
 
+/** El corte de pago que contiene la fecha dada. */
+function corteActual(hoy: Date) {
+  const candidatos = [
+    (() => {
+      const p = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+      return corteDe(p.getFullYear(), p.getMonth(), 2);
+    })(),
+    corteDe(hoy.getFullYear(), hoy.getMonth(), 1),
+    corteDe(hoy.getFullYear(), hoy.getMonth(), 2),
+  ];
+  return (
+    candidatos.find((c) => hoy.getTime() >= c.desde.getTime() && hoy.getTime() <= c.hasta.getTime()) ?? candidatos[1]!
+  );
+}
+
 /** Todos los cortes ya iniciados, del más reciente al más antiguo. */
 function cortesDePago(paquetes: Paquete[], hoy: Date) {
   let min: Date | null = null;
@@ -284,22 +305,148 @@ function Resumen() {
 
   const pendientesGlobal = paquetes.filter((p) => p.entregaEfectiva === "" && p.fechaDevolucion === "").length;
   const meses = historial(paquetes);
+  const cortes = cortesDePago(paquetes, hoy);
+
+  const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const [desdeTxt, setDesdeTxt] = useState(aISO(inicioMes));
+  const [hastaTxt, setHastaTxt] = useState(aISO(hoy));
+  const desdeSel = deISO(desdeTxt);
+  const hastaSel = deISO(hastaTxt);
+  const rangoSel = desdeSel && hastaSel ? calcularRango(paquetes, desdeSel, hastaSel) : null;
 
   return (
     <Pantalla titulo="Resumen" descripcion={`${paquetes.length} paquetes en la planilla · ${pendientesGlobal} pendientes en total`}>
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
 
       <Tabs defaultValue="dia">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           {periodos.map((p) => (
             <TabsTrigger key={p.valor} value={p.valor} className="text-xs">
               {p.texto}
             </TabsTrigger>
           ))}
+          <TabsTrigger value="pagos" className="text-xs">
+            Pagos
+          </TabsTrigger>
           <TabsTrigger value="historial" className="text-xs">
             Meses
           </TabsTrigger>
+          <TabsTrigger value="fechas" className="text-xs">
+            Fechas
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="pagos" className="mt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Cortes del 30 al 14 (te pagan el 15) y del 15 al 29 (te pagan el 30; si el mes tiene 31 días el corte va
+            hasta el 30 y te pagan el 31). Si el pago cae sábado, el corte y el pago se adelantan al viernes.
+          </p>
+          {cortes.map((c) => {
+            const pagado = c.pago.getTime() < hoy.getTime();
+            return (
+              <Card key={c.clave} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-display text-base font-semibold">{c.titulo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Te pagan el {diaMes(c.pago)} · {pagado ? "ya pagado" : "por pagar"}
+                    </p>
+                  </div>
+                  <p className="font-display text-lg font-bold text-primary">{pesos(c.r.aPagar)}</p>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {c.r.entregados} entregados · {c.r.fallidos} fallidos · efectivo {pesos(c.r.efectivo)}
+                </p>
+              </Card>
+            );
+          })}
+          {!isLoading && cortes.length === 0 && (
+            <p className="text-sm text-muted-foreground">Todavía no hay cortes con registros.</p>
+          )}
+        </TabsContent>
+
+        <TabsContent value="fechas" className="mt-4 space-y-4">
+          <Card className="space-y-3 p-4">
+            <p className="text-sm font-medium">Elige una fecha o un rango</p>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="space-y-1 text-xs text-muted-foreground">
+                Desde
+                <Input type="date" value={desdeTxt} onChange={(e) => setDesdeTxt(e.target.value)} />
+              </label>
+              <label className="space-y-1 text-xs text-muted-foreground">
+                Hasta
+                <Input type="date" value={hastaTxt} onChange={(e) => setHastaTxt(e.target.value)} />
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={() => { setDesdeTxt(aISO(hoy)); setHastaTxt(aISO(hoy)); }}>
+                Hoy
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  const c = corteActual(hoy);
+                  setDesdeTxt(aISO(c.desde));
+                  setHastaTxt(aISO(c.hasta));
+                }}
+              >
+                Corte actual
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => { setDesdeTxt(aISO(inicioMes)); setHastaTxt(aISO(hoy)); }}
+              >
+                Este mes
+              </Button>
+            </div>
+          </Card>
+
+          {rangoSel ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Metrica
+                icono={PackagePlus}
+                titulo="Recibidos"
+                valor={String(rangoSel.recibidos)}
+                clase="bg-secondary text-secondary-foreground"
+              />
+              <Metrica
+                icono={PackageCheck}
+                titulo="Entregados"
+                valor={String(rangoSel.entregados)}
+                clase="bg-success/15 text-success"
+              />
+              <Metrica
+                icono={PackageX}
+                titulo="Fallidos"
+                valor={String(rangoSel.fallidos)}
+                clase="bg-destructive/15 text-destructive"
+              />
+              <Metrica
+                icono={Clock}
+                titulo="Pendientes"
+                valor={String(rangoSel.pendientes)}
+                clase="bg-warning/15 text-warning"
+              />
+              <Metrica
+                icono={Banknote}
+                titulo="Recaudado en efectivo"
+                valor={pesos(rangoSel.efectivo)}
+                clase="bg-accent/20 text-accent-foreground"
+              />
+              <Metrica
+                icono={Wallet}
+                titulo="Te deben pagar"
+                valor={pesos(rangoSel.aPagar)}
+                clase="bg-primary/15 text-primary"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Elige las dos fechas para ver el resumen.</p>
+          )}
+        </TabsContent>
+
 
         <TabsContent value="historial" className="mt-4 space-y-4">
           <p className="text-sm text-muted-foreground">
