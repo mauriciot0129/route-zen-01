@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listarPaquetes, type Paquete } from "@/lib/sheets.functions";
 
