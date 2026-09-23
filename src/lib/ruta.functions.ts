@@ -43,7 +43,7 @@ function variantes(direccion: string, ciudad: string, incluirCiudad: boolean): s
     lista.add(`${vial[1]} #${vial[2]}-${vial[3] ?? ""}, ${ciudad}, Colombia`);
     lista.add(`${vial[1]}, ${ciudad}, Colombia`);
   }
-  lista.add(`${ciudad}, Colombia`);
+  if (incluirCiudad) lista.add(`${ciudad}, Colombia`);
   return [...lista];
 }
 
