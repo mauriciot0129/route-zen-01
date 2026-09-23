@@ -23,7 +23,7 @@ function normalizar(texto: string) {
 }
 
 /** Genera variantes de una dirección colombiana para mejorar el reconocimiento. */
-function variantes(direccion: string, ciudad: string): string[] {
+function variantes(direccion: string, ciudad: string, incluirCiudad: boolean): string[] {
   const base = direccion
     .replace(/\s+/g, " ")
     .replace(/\bCL\b/gi, "Calle")
