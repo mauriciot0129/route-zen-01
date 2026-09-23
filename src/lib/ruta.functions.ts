@@ -9,8 +9,45 @@ interface Punto {
   lon: number | null;
 }
 
-async function geocodificar(direccion: string, ciudad: string): Promise<{ lat: number; lon: number } | null> {
-  const q = `${direccion}, ${ciudad}, Colombia`;
+// Punto de partida fijo: coordenadas conocidas para no depender del mapa
+const INICIOS_FIJOS: Array<{ clave: string; lat: number; lon: number }> = [
+  { clave: "cl53a#47a-38losnaranjositagui", lat: 6.1741, lon: -75.6059 },
+];
+
+function normalizar(texto: string) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+/** Genera variantes de una dirección colombiana para mejorar el reconocimiento. */
+function variantes(direccion: string, ciudad: string, incluirCiudad: boolean): string[] {
+  const base = direccion
+    .replace(/\s+/g, " ")
+    .replace(/\bCL\b/gi, "Calle")
+    .replace(/\bCR\b|\bCRA\b|\bKR\b/gi, "Carrera")
+    .replace(/\bDG\b/gi, "Diagonal")
+    .replace(/\bTV\b/gi, "Transversal")
+    .replace(/\bAV\b/gi, "Avenida")
+    .trim();
+
+  const sinSimbolos = base.replace(/#/g, " ").replace(/\s*-\s*/g, " ").replace(/\s+/g, " ").trim();
+  // "Calle 53A 47A 38 Los Naranjos" -> "Calle 53A # 47A-38"
+  const vial = sinSimbolos.match(/^((?:Calle|Carrera|Diagonal|Transversal|Avenida)\s+\d+[A-Za-z]?)\s+(\d+[A-Za-z]?)\s*(\d+)?/i);
+  const lista = new Set<string>();
+  lista.add(`${base}, ${ciudad}, Colombia`);
+  lista.add(`${sinSimbolos}, ${ciudad}, Colombia`);
+  if (vial) {
+    lista.add(`${vial[1]} #${vial[2]}-${vial[3] ?? ""}, ${ciudad}, Colombia`);
+    lista.add(`${vial[1]}, ${ciudad}, Colombia`);
+  }
+  if (incluirCiudad) lista.add(`${ciudad}, Colombia`);
+  return [...lista];
+}
+
+async function buscar(q: string): Promise<{ lat: number; lon: number } | null> {
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=co&q=${encodeURIComponent(q)}`;
   try {
     const res = await fetch(url, {
@@ -27,6 +64,23 @@ async function geocodificar(direccion: string, ciudad: string): Promise<{ lat: n
     console.error("Geocoding error", e);
     return null;
   }
+}
+
+async function geocodificar(
+  direccion: string,
+  ciudad: string,
+  esInicio = false,
+): Promise<{ lat: number; lon: number } | null> {
+  const fijo = INICIOS_FIJOS.find((f) => normalizar(direccion).includes(f.clave));
+  if (fijo) return { lat: fijo.lat, lon: fijo.lon };
+
+  const opciones = variantes(direccion, ciudad, esInicio);
+  for (let i = 0; i < opciones.length; i++) {
+    const r = await buscar(opciones[i]!);
+    if (r) return r;
+    if (i < opciones.length - 1) await new Promise((res) => setTimeout(res, 1100));
+  }
+  return null;
 }
 
 function km(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
@@ -98,7 +152,7 @@ export const optimizarRuta = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const origen = await geocodificar(data.inicio, data.ciudad);
+    const origen = await geocodificar(data.inicio, data.ciudad, true);
     if (!origen) {
       return { error: "No pudimos ubicar el punto de partida. Escríbelo más completo." as string };
     }
