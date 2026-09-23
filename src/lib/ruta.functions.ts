@@ -66,11 +66,15 @@ async function buscar(q: string): Promise<{ lat: number; lon: number } | null> {
   }
 }
 
-async function geocodificar(direccion: string, ciudad: string): Promise<{ lat: number; lon: number } | null> {
+async function geocodificar(
+  direccion: string,
+  ciudad: string,
+  esInicio = false,
+): Promise<{ lat: number; lon: number } | null> {
   const fijo = INICIOS_FIJOS.find((f) => normalizar(direccion).includes(f.clave));
   if (fijo) return { lat: fijo.lat, lon: fijo.lon };
 
-  const opciones = variantes(direccion, ciudad);
+  const opciones = variantes(direccion, ciudad, esInicio);
   for (let i = 0; i < opciones.length; i++) {
     const r = await buscar(opciones[i]!);
     if (r) return r;
