@@ -152,7 +152,7 @@ export const optimizarRuta = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const origen = await geocodificar(data.inicio, data.ciudad);
+    const origen = await geocodificar(data.inicio, data.ciudad, true);
     if (!origen) {
       return { error: "No pudimos ubicar el punto de partida. Escríbelo más completo." as string };
     }
