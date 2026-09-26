@@ -104,13 +104,16 @@ export const guardarPaquetes = createServerFn({ method: "POST" })
       });
     }
 
+    // Solo bloquea si la guía ya fue registrada HOY; en días anteriores sí se puede volver a registrar.
     const existentes = (await sheets(
-      `/spreadsheets/${SHEET_ID}/values/${TAB}!B2:B1000`,
+      `/spreadsheets/${SHEET_ID}/values/${TAB}!A2:B1000`,
     )) as { values?: string[][] };
-    const yaEstan = new Set((existentes.values ?? []).map((r) => (r[0] ?? "").trim()));
-
     const fecha = hoyBogota();
-    const nuevos = data.items.filter((i) => !yaEstan.has(i.guia.trim()));
+    const yaEstan = new Set(
+      (existentes.values ?? []).map((r) => `${(r[0] ?? "").trim()}|${(r[1] ?? "").trim()}`),
+    );
+
+    const nuevos = data.items.filter((i) => !yaEstan.has(`${fecha}|${i.guia.trim()}`));
     const duplicados = data.items.length - nuevos.length;
 
     if (nuevos.length > 0) {

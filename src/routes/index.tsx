@@ -84,8 +84,8 @@ function Registro() {
         toast.warning("Esa guía ya está en la lista");
         return prev;
       }
-      if (data?.paquetes.some((p) => p.guia === limpia)) {
-        toast.warning("Esa guía ya está en tu planilla");
+      if (data?.paquetes.some((p) => p.guia === limpia && p.fecha === hoy)) {
+        toast.warning("Esa guía ya está registrada hoy");
         return prev;
       }
       toast.success(`Guía ${limpia} agregada`);
@@ -114,7 +114,7 @@ function Registro() {
     }
     const existentes = new Set([
       ...lista.map((l) => l.guia),
-      ...(data?.paquetes ?? []).map((p) => p.guia),
+      ...(data?.paquetes ?? []).filter((p) => p.fecha === hoy).map((p) => p.guia),
     ]);
     const nuevas = guias.filter((g) => !existentes.has(g));
     setLista((prev) => [...nuevas.map(nuevo), ...prev]);
