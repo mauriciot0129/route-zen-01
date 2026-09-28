@@ -56,7 +56,7 @@ export function hoyBogota(): string {
 }
 
 export const listarPaquetes = createServerFn({ method: "GET" }).handler(async () => {
-  const data = (await sheets(`/spreadsheets/${SHEET_ID}/values/${TAB}!A2:K1000`)) as {
+  const data = (await sheets(`/spreadsheets/${SHEET_ID}/values/${TAB}!A2:K`)) as {
     values?: string[][];
   };
   const rows = data.values ?? [];
@@ -106,7 +106,7 @@ export const guardarPaquetes = createServerFn({ method: "POST" })
 
     // Solo bloquea si la guía ya fue registrada HOY; en días anteriores sí se puede volver a registrar.
     const existentes = (await sheets(
-      `/spreadsheets/${SHEET_ID}/values/${TAB}!A2:B1000`,
+      `/spreadsheets/${SHEET_ID}/values/${TAB}!A2:B`,
     )) as { values?: string[][] };
     const fecha = hoyBogota();
     const yaEstan = new Set(
