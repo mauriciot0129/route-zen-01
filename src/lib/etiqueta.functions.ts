@@ -20,7 +20,7 @@ export const leerEtiqueta = createServerFn({ method: "POST" })
             role: "system",
             content:
               "Eres un asistente que lee etiquetas de envío de Coordinadora (Colombia). Devuelve SOLO un JSON con las claves guia, nombre, direccion, telefono, cobro, valor. " +
-              "guia: el número de guía de 11 dígitos (solo dígitos). nombre: el destinatario. direccion: la dirección de entrega (sin ciudad si es posible). " +
+              "guia: el número de guía de 11 dígitos (solo dígitos). nombre: el destinatario, es el nombre que aparece junto a la palabra 'Para' en la etiqueta (nunca el remitente ni el que aparece junto a 'De'). direccion: la dirección de entrega (sin ciudad si es posible). " +
               "telefono: teléfono del destinatario o cadena vacía. cobro: true si la etiqueta indica recaudo/RCE/FCE/contra entrega, si no false. valor: el valor a recaudar como número entero, 0 si no hay. " +
               "Si un dato no aparece, usa cadena vacía o 0. No escribas texto fuera del JSON.",
           },
