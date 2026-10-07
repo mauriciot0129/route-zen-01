@@ -241,7 +241,7 @@ function Entregas() {
         {filtrados.map((p) => {
           const ed = editando[p.row];
           const set = (c: Partial<Edicion>) =>
-            setEditando((s) => ({ ...s, [p.row]: { ...s[p.row], ...c } }));
+            setEditando((s) => ({ ...s, [p.row]: { ...(s[p.row] as Edicion), ...c } }));
           return (
             <Card key={p.row} className="space-y-3 p-4">
               {ed ? (
