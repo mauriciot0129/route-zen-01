@@ -190,3 +190,35 @@ export const actualizarPaquete = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+export const editarPaquete = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        row: z.number().int().min(2),
+        guia: z.string().min(1),
+        nombre: z.string(),
+        cobro: z.enum(["SI", "NO"]),
+        valor: z.number().nonnegative(),
+        observaciones: z.string(),
+        direccion: z.string(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    await sheets(`/spreadsheets/${SHEET_ID}/values:batchUpdate`, {
+      method: "POST",
+      body: JSON.stringify({
+        valueInputOption: "USER_ENTERED",
+        data: [
+          { range: `${TAB}!B${data.row}:C${data.row}`, values: [[data.guia.trim(), data.nombre]] },
+          {
+            range: `${TAB}!E${data.row}:F${data.row}`,
+            values: [[data.cobro, data.cobro === "SI" ? data.valor : 0]],
+          },
+          { range: `${TAB}!J${data.row}:K${data.row}`, values: [[data.observaciones, data.direccion]] },
+        ],
+      }),
+    });
+    return { ok: true };
+  });
