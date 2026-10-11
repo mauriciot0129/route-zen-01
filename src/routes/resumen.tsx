@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet } from "lucide-react";
+import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet, FileSpreadsheet } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
