@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const SHEET_ID = "10lFPYTyFZ99YbrdJ9wrP9yA1YLl7VE4MG-Rl8sIkFnY";
+const SHEET_ID = "1LXv1v1_gTq0Yvx6iuwBDSvsPx_4lt0gkD3XOdnsm1L4";
 const TAB = "BD";
 const GATEWAY = "https://connector-gateway.lovable.dev/google_sheets/v4";
 
