@@ -318,6 +318,17 @@ function Resumen() {
     <Pantalla titulo="Resumen" descripcion={`${paquetes.length} paquetes en la planilla · ${pendientesGlobal} pendientes en total`}>
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
 
+      <a
+        href="https://docs.google.com/spreadsheets/d/10lFPYTyFZ99YbrdJ9wrP9yA1YLl7VE4MG-Rl8sIkFnY/edit"
+        target="_blank"
+        rel="noreferrer"
+        className="mb-4 flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-secondary"
+      >
+        <FileSpreadsheet className="h-4 w-4" />
+        Abrir planilla de Google Sheets
+      </a>
+
+
       <Tabs defaultValue="dia">
         <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
           {periodos.map((p) => (
