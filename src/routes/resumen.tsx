@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet } from "lucide-react";
+import { PackagePlus, PackageCheck, PackageX, Clock, Banknote, Wallet, FileSpreadsheet } from "lucide-react";
 
 import { Pantalla } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
@@ -317,6 +317,17 @@ function Resumen() {
   return (
     <Pantalla titulo="Resumen" descripcion={`${paquetes.length} paquetes en la planilla · ${pendientesGlobal} pendientes en total`}>
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
+
+      <a
+        href="https://docs.google.com/spreadsheets/d/10lFPYTyFZ99YbrdJ9wrP9yA1YLl7VE4MG-Rl8sIkFnY/edit"
+        target="_blank"
+        rel="noreferrer"
+        className="mb-4 flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-secondary"
+      >
+        <FileSpreadsheet className="h-4 w-4" />
+        Abrir planilla de Google Sheets
+      </a>
+
 
       <Tabs defaultValue="dia">
         <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">
