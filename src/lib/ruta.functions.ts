@@ -11,7 +11,7 @@ interface Punto {
 
 // Punto de partida fijo: coordenadas conocidas para no depender del mapa
 const INICIOS_FIJOS: Array<{ clave: string; lat: number; lon: number }> = [
-  { clave: "cl92a#69-83alfonsolopezmedellin", lat: 6.2845, lon: -75.5754 },
+  { clave: "cl53a#47a-38losnaranjositagui", lat: 6.1741, lon: -75.6059 },
 ];
 
 function normalizar(texto: string) {

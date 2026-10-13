@@ -33,7 +33,7 @@ export const Route = createFileRoute("/ruta")({
   component: RutaPage,
 });
 
-const INICIO_FIJO = "CL 92A # 69 - 83 Alfonso López Medellín";
+const INICIO_FIJO = "CL 53A # 47A - 38 Los Naranjos Itagüí";
 const MapaRuta = lazy(() => import("@/components/MapaRuta"));
 
 function RutaPage() {
@@ -44,7 +44,7 @@ function RutaPage() {
   const optimizar = useServerFn(optimizarRuta);
 
   useEffect(() => {
-    setCiudad(localStorage.getItem("ciudad") ?? "Medellín");
+    setCiudad(localStorage.getItem("ciudad") ?? "Itagüí");
   }, []);
 
   const { data } = useQuery({ queryKey: ["paquetes"], queryFn: () => listarPaquetes() });
