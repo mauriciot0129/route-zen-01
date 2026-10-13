@@ -319,7 +319,7 @@ function Resumen() {
       {isLoading && <p className="text-sm text-muted-foreground">Calculando tus números…</p>}
 
       <a
-        href="https://docs.google.com/spreadsheets/d/1LXv1v1_gTq0Yvx6iuwBDSvsPx_4lt0gkD3XOdnsm1L4/edit"
+        href="https://docs.google.com/spreadsheets/d/10lFPYTyFZ99YbrdJ9wrP9yA1YLl7VE4MG-Rl8sIkFnY/edit"
         target="_blank"
         rel="noreferrer"
         className="mb-4 flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-secondary"
