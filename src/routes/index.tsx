@@ -170,7 +170,7 @@ function Registro() {
           <FotoEtiqueta onDatos={agregarEtiqueta} />
         </TabsContent>
         <TabsContent value="escanear" className="mt-4">
-          <Escaner onCodigo={(g) => agregar(g)} />
+          <Escaner onDatos={agregarEtiqueta} />
         </TabsContent>
         <TabsContent value="pegar" className="mt-4 space-y-3">
           <Textarea
