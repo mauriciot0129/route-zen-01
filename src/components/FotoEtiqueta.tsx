@@ -53,9 +53,9 @@ async function comprimir(bitmap: ImageBitmap): Promise<string> {
 }
 
 async function deArchivo(file: File): Promise<string> {
+  // Solo resizeWidth: el navegador mantiene la proporción de la foto.
   const original = await createImageBitmap(file, {
     resizeWidth: 1280,
-    resizeHeight: 1280,
     resizeQuality: "high",
   });
   return comprimir(original);
