@@ -90,8 +90,10 @@ export function Escaner({ onDatos }: Props) {
     setLeyendoDatos(true);
     try {
       const d = await leer({ data: { imagen } });
+      // La guía impresa en la etiqueta manda; el código de barras puede ser otro número.
+      const guiaIA = guiaDe(d.guia);
       onDatos({
-        guia,
+        guia: guiaIA || guia,
         nombre: d.nombre,
         direccion: d.direccion,
         telefono: d.telefono,
