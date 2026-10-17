@@ -101,6 +101,10 @@ export function Escaner({ onDatos }: Props) {
       const d = await leer({ data: { imagen } });
       // La guía impresa en la etiqueta manda; el código de barras puede ser otro número.
       const guiaIA = guiaDe(d.guia);
+      if (!guiaIA && !guia) {
+        setError("No encontramos la guía en esa foto. Prueba con otra más de cerca y sin sombra.");
+        return;
+      }
       onDatos({
         guia: guiaIA || guia,
         nombre: d.nombre,
