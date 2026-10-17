@@ -10,13 +10,19 @@ interface Props {
   onDatos: (d: DatosEtiqueta) => void;
 }
 
-/** Saca la guía de 11 dígitos del código leído. */
+/**
+ * Saca la guía de 11 dígitos del código leído.
+ * Los códigos de Coordinadora traen la guía seguida de 3 dígitos de unidad ("001"):
+ *   QR:       70020010200080014536396991942001 → 36396991942
+ *   Barras:   768323000359001                  → 68323000359
+ */
 export function guiaDe(texto: string): string {
   const grupo = texto.match(/(?<!\d)(\d{11})(?!\d)/);
   if (grupo) return grupo[1]!;
   const digitos = texto.replace(/\D/g, "");
   if (digitos.length === 11) return digitos;
-  if (digitos.length > 11) return digitos.slice(-11);
+  if (digitos.length >= 14) return digitos.slice(-14, -3);
+  if (digitos.length > 11) return digitos.slice(0, 11);
   return "";
 }
 
