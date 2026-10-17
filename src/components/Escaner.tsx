@@ -111,10 +111,12 @@ export function Escaner({ onDatos }: Props) {
       });
     } catch (e) {
       console.error(e);
-      toast.warning("Agregamos la guía, pero no pudimos leer los demás datos", {
-        description: "Complétalos en la lista de abajo.",
-      });
-      onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
+      const motivo = e instanceof Error ? e.message : "";
+      toast.warning(
+        guia ? "Agregamos la guía, pero no pudimos leer los demás datos" : "No pudimos leer la etiqueta",
+        { description: `${motivo ? motivo + " " : ""}Complétalos en la lista de abajo.`, duration: 8000 },
+      );
+      if (guia) onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
     } finally {
       setLeyendoDatos(false);
     }
