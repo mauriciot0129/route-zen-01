@@ -84,14 +84,19 @@ export function Escaner({ onDatos }: Props) {
   /** Con la guía ya leída, saca el resto de datos de la etiqueta con IA. */
   async function completarDatos(guia: string, imagen: string | null) {
     if (!imagen) {
-      onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
+      toast.warning("No pudimos preparar la foto para leer los demás datos", {
+        description: "Complétalos en la lista de abajo.",
+      });
+      if (guia) onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
       return;
     }
     setLeyendoDatos(true);
     try {
       const d = await leer({ data: { imagen } });
+      // La guía impresa en la etiqueta manda; el código de barras puede ser otro número.
+      const guiaIA = guiaDe(d.guia);
       onDatos({
-        guia,
+        guia: guiaIA || guia,
         nombre: d.nombre,
         direccion: d.direccion,
         telefono: d.telefono,
