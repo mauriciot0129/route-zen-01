@@ -10,13 +10,19 @@ interface Props {
   onDatos: (d: DatosEtiqueta) => void;
 }
 
-/** Saca la guía de 11 dígitos del código leído. */
+/**
+ * Saca la guía de 11 dígitos del código leído.
+ * Los códigos de Coordinadora traen la guía seguida de 3 dígitos de unidad ("001"):
+ *   QR:       70020010200080014536396991942001 → 36396991942
+ *   Barras:   768323000359001                  → 68323000359
+ */
 export function guiaDe(texto: string): string {
   const grupo = texto.match(/(?<!\d)(\d{11})(?!\d)/);
   if (grupo) return grupo[1]!;
   const digitos = texto.replace(/\D/g, "");
   if (digitos.length === 11) return digitos;
-  if (digitos.length > 11) return digitos.slice(-11);
+  if (digitos.length >= 14) return digitos.slice(-14, -3);
+  if (digitos.length > 11) return digitos.slice(0, 11);
   return "";
 }
 
@@ -95,6 +101,10 @@ export function Escaner({ onDatos }: Props) {
       const d = await leer({ data: { imagen } });
       // La guía impresa en la etiqueta manda; el código de barras puede ser otro número.
       const guiaIA = guiaDe(d.guia);
+      if (!guiaIA && !guia) {
+        setError("No encontramos la guía en esa foto. Prueba con otra más de cerca y sin sombra.");
+        return;
+      }
       onDatos({
         guia: guiaIA || guia,
         nombre: d.nombre,
@@ -105,10 +115,12 @@ export function Escaner({ onDatos }: Props) {
       });
     } catch (e) {
       console.error(e);
-      toast.warning("Agregamos la guía, pero no pudimos leer los demás datos", {
-        description: "Complétalos en la lista de abajo.",
-      });
-      onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
+      const motivo = e instanceof Error ? e.message : "";
+      toast.warning(
+        guia ? "Agregamos la guía, pero no pudimos leer los demás datos" : "No pudimos leer la etiqueta",
+        { description: `${motivo ? motivo + " " : ""}Complétalos en la lista de abajo.`, duration: 8000 },
+      );
+      if (guia) onDatos({ guia, nombre: "", direccion: "", telefono: "", cobro: false, valor: 0 });
     } finally {
       setLeyendoDatos(false);
     }
